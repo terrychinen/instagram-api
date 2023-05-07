@@ -40,6 +40,19 @@ export class UserService {
     }
   }
 
+  async findOneByEmail(email: string) {
+    try {
+      const user = await this._userRepository.findOneBy({ email });
+      if (!user) {
+        throw new NotFoundException(`User not found`);
+      }
+
+      return user;
+    } catch (error) {
+      this._handleErrors(error);
+    }
+  }
+
   async create(createUserDto: CreateUserDto) {
     try {
       const createUser = this._userRepository.create({
@@ -70,6 +83,16 @@ export class UserService {
 
     delete user.password;
     return user;
+  }
+
+  async saveToken(user: User) {
+    try {
+      const token = this.jwtService.sign({ id: user.userId });
+      user.token = token;
+      return await this._userRepository.save(user);
+    } catch (error) {
+      this._handleErrors(error);
+    }
   }
 
   private _handleErrors(error: any): never {
